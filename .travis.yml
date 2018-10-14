@@ -2,9 +2,11 @@ language: python
 python:
   - "3.6"
 install:
+  - git config remote.origin.fetch +refs/heads/master:refs/remotes/origin/master
+  - git fetch
   - pip install -r requirements.txt
   - pip install -r test-requirements.txt
-  script:
+script:
   - pytest
-  - git diff origin/master... -z --name-only -- *.py | xargs -0 pylint
-  - git diff origin/master... -U | flake8 --diff -
+  - git diff -z --name-only origin/master... -- *.py | xargs -0 --no-run-if-empty pylint
+  - git diff -U origin/master... | flake8 --diff -
