@@ -16,7 +16,7 @@ STAGE_SUCCESSOR = {
 }
 
 
-class StageProvider:  # pylint: disable=too-few-public-methods
+class StageProvider:
 
     @staticmethod
     def provide_next_stage(stage):

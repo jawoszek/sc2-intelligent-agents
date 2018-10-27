@@ -1,8 +1,8 @@
 """A random agent for starcraft."""
 import random
 from pysc2.lib import actions, features
-from sc2agents.data.terran_state import TerranState
-from sc2agents.data.terran_parameters import TerranParameters
+from sc2agents.data.player_state import PlayerState
+from sc2agents.data.parameters import Parameters
 from sc2agents.stages.stage import Stage
 
 
@@ -11,46 +11,50 @@ FUNCTIONS = actions.FUNCTIONS
 
 class TerranMoveStage(Stage):
 
-    def __init__(self, state: TerranState, parameters: TerranParameters, stage_provider):
-        super().__init__(1, state, parameters, stage_provider)
+    def __init__(self,
+                 parameters: Parameters,
+                 player_state: PlayerState):
+
+        super().__init__(1, parameters, player_state)
         self.army_selected = False
 
     def process(self, obs):
-        enemies_location_minimap_visible = self.get_positions_of_enemy_on_minimap(obs, only_visible=True,
-                                                                                  distance_from_visible=8)
+        super(TerranMoveStage, self).process(obs)
+        enemies_visible_on_minimap = self.positions_of_enemy_on_minimap(
+            only_visible=True, distance_from_visible=8)
 
-        if enemies_location_minimap_visible and self.can_select_army(obs):
+        if enemies_visible_on_minimap and self.obs.can_select_army():
             self.select_army()
             if not self.army_selected:
                 self.select_army()
                 self.army_selected = True
                 return
 
-            attack_target = self.closest_free_point(obs, enemies_location_minimap_visible[0])
+            attack_target = self.closest_free_point(
+                enemies_visible_on_minimap[0])
             self.queue.append(FUNCTIONS.Attack_minimap('now', attack_target))
-            self.remaining_actions -= 1
+            self.remaining_executions -= 1
             return
 
-        enemies_location_minimap = self.get_positions_of_enemy_on_minimap(obs)
+        enemies_on_minimap = self.positions_of_enemy_on_minimap()
 
-        if enemies_location_minimap and self.can_select_army(obs) and self.should_attack(obs):
+        if enemies_on_minimap and self.obs.can_select_army() \
+                and self.should_attack():
             self.select_army()
             if not self.army_selected:
                 self.select_army()
                 self.army_selected = True
                 return
 
-            target = enemies_location_minimap[0]
-            attack_target = self.closest_free_point(obs, target)
+            target = enemies_on_minimap[0]
+            attack_target = self.closest_free_point(target)
             self.queue.append(FUNCTIONS.Attack_minimap('now', attack_target))
-            self.remaining_actions -= 1
-            return
 
-        self.remaining_actions -= 1
+        self.remaining_executions -= 1
         return
 
-    def closest_free_point(self, obs, target):
-        minimap = obs.observation.feature_minimap.player_id
+    def closest_free_point(self, target):
+        minimap = self.obs.obs.feature_minimap.player_id
         queue = [target]
         already = {target}
         while queue:
@@ -62,6 +66,7 @@ class TerranMoveStage(Stage):
                 if point not in already:
                     queue.append(point)
                     already.add(point)
+        # TODO proper logging
         print('No free close-by target')
         return target
 
@@ -75,6 +80,5 @@ class TerranMoveStage(Stage):
         random.shuffle(points)
         return points
 
-    @staticmethod
-    def should_attack(obs):
-        return obs.observation.player.food_army > 30
+    def should_attack(self):
+        return self.obs.player.food_army > 30

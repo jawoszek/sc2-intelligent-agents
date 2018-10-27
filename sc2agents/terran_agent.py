@@ -4,9 +4,15 @@ from pysc2.agents import base_agent
 from pysc2.env import sc2_env
 from pysc2.lib import actions, features
 from sc2agents.stages.stage_provider import StageProvider
-from sc2agents.data.terran_state import TerranState
-from sc2agents.data.terran_parameters import TerranParameters
-from sc2agents.data.terran_build_order import TerranBuildOrder
+from sc2agents.data.player_state import PlayerState
+from sc2agents.data.parameters import Parameters
+from sc2agents.data.terran.build_order_provider import BuildOrder, \
+    default_build_order
+from sc2agents.data.building_state import BuildingState
+from sc2agents.data.map_state import MapState
+from sc2agents.data.control_state import ControlState
+import sc2agents.data.terran.constants as terran_constants
+from sc2agents.data.observations import Observations
 
 FUNCTIONS = actions.FUNCTIONS
 
@@ -19,27 +25,45 @@ DIFFICULTY = sc2_env.Difficulty.easy
 class TerranAgent(base_agent.BaseAgent):
     """A Terran Agent."""
 
-    def __init__(self, build_order: TerranBuildOrder = TerranBuildOrder()):
+    def __init__(self, build_order: BuildOrder = default_build_order()):
         super().__init__()
-        self.state = TerranState(MINIMAP_SIZE)
-        self.parameters = TerranParameters(build_order, screen_size=SCREEN_SIZE, minimap_size=MINIMAP_SIZE)
+        self.state = PlayerState(
+            BuildingState(
+                terran_constants.INITIAL_UNITS,
+                terran_constants.INITIAL_BUILDINGS
+            ),
+            ControlState(),
+            MapState(MINIMAP_SIZE)
+        )
+        self.parameters = Parameters(
+            build_order,
+            screen_size=SCREEN_SIZE,
+            minimap_size=MINIMAP_SIZE
+        )
         self.stage_provider = StageProvider()
-        self.stage = self.stage_provider.provide_next_stage(None)(self.state, self.parameters, self.stage_provider)
+        self.stage = self.stage_provider.provide_next_stage(None)(
+            self.parameters, self.state)
 
     def step(self, obs):
         super(TerranAgent, self).step(obs)
+        observations = Observations(obs)
 
         if self.stage.has_next_action():
             return self.stage.next_action()
 
         if self.stage.ended():
-            # TODO proper logging
-            # print("stage {0} ended".format(type(self.stage)))
-            self.stage = self.stage.get_next_stage()
-            # print("new stage {0}".format(type(self.stage)))
-            self.stage.prepare(obs)
+            next_stage = self.stage_provider.provide_next_stage(self.stage)(
+                self.parameters, self.state)
+
+            if next_stage is None:
+                message = 'Stage {0} is not known to provider'.format(
+                    type(self.stage))
+                raise NotImplementedError(message)
+
+            self.stage = next_stage
+            self.stage.prepare(observations)
         else:
-            self.stage.process(obs)
+            self.stage.process(observations)
 
         if self.stage.has_next_action():
             return self.stage.next_action()
@@ -56,11 +80,13 @@ def main(_):
                              sc2_env.Bot(sc2_env.Race.zerg,
                                          DIFFICULTY)],
                     agent_interface_format=features.AgentInterfaceFormat(
-                        feature_dimensions=features.Dimensions(screen=SCREEN_SIZE, minimap=MINIMAP_SIZE),
+                        feature_dimensions=features.Dimensions(
+                            screen=SCREEN_SIZE, minimap=MINIMAP_SIZE),
                         use_feature_units=True),
                     step_mul=STEP_MUL,
                     game_steps_per_episode=0,
-                    visualize=False) as env:  # TODO ignore not available action after new pysc2 release
+                    visualize=False) as env:
+                # TODO ignore not available action after new pysc2 release
 
                 agent = TerranAgent()
                 agent.setup(env.observation_spec(), env.action_spec())
@@ -74,7 +100,8 @@ def main(_):
                         print('Finished {0}'.format(timesteps[0].reward))
                         # TODO proper place for result resources
                         with open("results_scripted.txt", "a") as file:
-                            file.write('{0}\n'.format(str(timesteps[0].reward)))
+                            file.write(
+                                '{0}\n'.format(str(timesteps[0].reward)))
                         break
                     timesteps = env.step(step_actions)
 

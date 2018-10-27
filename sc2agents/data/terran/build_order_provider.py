@@ -1,10 +1,8 @@
-
 """A random agent for starcraft."""
-
-from pysc2.lib import actions, units
-from sc2agents.data.terran_state import TerranState
-
-FUNCTIONS = actions.FUNCTIONS
+from pysc2.lib import units
+from sc2agents.data.build_order import BuildOrder
+from sc2agents.data.build_order_providers import randomized_build_order, \
+    randomized_recruit_order
 
 RECRUIT_ORDER_DEFAULT = [
     units.Terran.SCV,
@@ -94,53 +92,27 @@ BUILD_ORDER_DEFAULT = [
     (64, units.Terran.SupplyDepot)
 ]
 
+UNITS_TO_CHOOSE = [
+    units.Terran.SCV,
+    units.Terran.Marine
+]
 
-def recruit_order_pos_to_str(recruit_order):
-    return map(lambda unit: str(unit.value), recruit_order)
+BUILDINGS_TO_CHOOSE = [
+    units.Terran.SupplyDepot,
+    units.Terran.Barracks,
+    units.Terran.Refinery
+]
 
 
-class TerranBuildOrder:
+def default_build_order() -> BuildOrder:
+    return BuildOrder(
+        RECRUIT_ORDER_DEFAULT,
+        BUILD_ORDER_DEFAULT
+    )
 
-    def __init__(self, recruit_order=None, build_order=None):
-        if recruit_order is None:
-            self.recruit_order = RECRUIT_ORDER_DEFAULT
-        else:
-            self.recruit_order = recruit_order
 
-        if build_order is None:
-            self.build_order = BUILD_ORDER_DEFAULT
-        else:
-            self.build_order = build_order
-
-    def build_order_reached(self, obs, state: TerranState):
-        return state.build_order_pos < len(self.build_order) \
-               and \
-               obs.observation.player.food_used >= self.build_order[state.build_order_pos][0]
-
-    def build_order_building(self, state: TerranState, index=None):
-        if index is None:
-            index = state.build_order_pos
-
-        return self.build_order[index][1] if index < len(self.build_order) else None
-
-    def recruit_order_finished(self, state: TerranState):
-        return state.recruit_order_pos >= len(self.recruit_order)
-
-    def recruit_order_next(self, state: TerranState):
-        return self.recruit_order[state.recruit_order_pos]
-
-    def storage_format(self):
-        build_order_part = self.build_order_storage_format()
-        recruit_order_part = self.recruit_order_storage_format()
-        return "{0},{1}".format(build_order_part, recruit_order_part)
-
-    def build_order_storage_format(self):
-        build_order_listed = [
-            "({0},{1})".format(pop, building)
-            for pop, building in self.build_order
-        ]
-        return "[{0}]".format(','.join(build_order_listed))
-
-    def recruit_order_storage_format(self):
-        recruit_order_listed = ','.join(recruit_order_pos_to_str(self.recruit_order))
-        return '[{0}]'.format(recruit_order_listed)
+def random_build_order(recruit_length, build_length) -> BuildOrder:
+    return BuildOrder(
+        randomized_recruit_order(recruit_length, UNITS_TO_CHOOSE),
+        randomized_build_order(build_length, BUILDINGS_TO_CHOOSE)
+    )

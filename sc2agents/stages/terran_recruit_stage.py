@@ -1,153 +1,157 @@
 """A random agent for starcraft."""
 from pysc2.lib import actions, units
+from sc2agents.data.player_state import PlayerState
+from sc2agents.data.parameters import Parameters
 from sc2agents.stages.stage import Stage
-from sc2agents.data.terran_state import TerranState
-from sc2agents.data.terran_parameters import TerranParameters
+import sc2agents.data.terran.constants as terran_constants
 
 FUNCTIONS = actions.FUNCTIONS
 
-UNIT_TO_BUILDING = {
-    units.Terran.SCV: units.Terran.CommandCenter,
-    units.Terran.Marine: units.Terran.Barracks
-}
 
-UNIT_TO_COST = {
-    units.Terran.SCV: 50,
-    units.Terran.Marine: 50
-}
+def recruitment_building(unit):
+    return terran_constants.UNIT_TO_BUILDING[unit]
 
-UNIT_TO_ACTIONS = {
-    units.Terran.SCV: FUNCTIONS.Train_SCV_quick,
-    units.Terran.Marine: FUNCTIONS.Train_Marine_quick
-}
+
+def units_recruited_at(building_type):
+    return [
+        unit for (unit, building)
+        in terran_constants.UNIT_TO_BUILDING.items()
+        if building == building_type
+    ]
+
+
+def unit_cost(unit_type):
+    return terran_constants.UNIT_TO_COST.get(unit_type, 0)
+
+
+def unit_to_actions(unit_type):
+    return terran_constants.UNIT_TO_ACTION[unit_type]
 
 
 class TerranRecruitStage(Stage):
 
-    def __init__(self, state: TerranState, parameters: TerranParameters, stage_provider):
-        super().__init__(1, state, parameters, stage_provider)
+    def __init__(self,
+                 parameters: Parameters,
+                 player_state: PlayerState):
+
+        super().__init__(1, parameters, player_state)
         self.currently_recruiting = None
         self.army_selected = False
 
     def process(self, obs):
-        if not self.state.centered_at_cc():
+        super(TerranRecruitStage, self).process(obs)
+        map_state = self.player_state.map_state
+        building_state = self.player_state.building_state
+
+        if not map_state.centered_at_base():
             self.move_screen_to_cc()
             return
 
-        if not self.parameters.recruit_order_finished(self.state):
-            unit_to_recruit = self.parameters.recruit_order_next(self.state)
-            if self.recruit(obs, unit_to_recruit):
-                self.remaining_actions -= 1
+        if not self.parameters.recruit_order_finished(building_state):
+            unit_to_recruit = self.parameters.recruit_order_next(
+                building_state)
+            if self.recruit(unit_to_recruit):
+                self.remaining_executions -= 1
             return
 
-        if obs.observation.player.food_workers < self.state.already_recruit[units.Terran.SCV]:
+        already_recruited_scv = building_state.already_recruit[units.Terran.SCV]
+        if self.obs.player.food_workers < already_recruited_scv:
             unit_to_recruit = units.Terran.SCV
-            if self.recruit(obs, unit_to_recruit, replacement=True):
-                self.remaining_actions -= 1
+            if self.recruit(unit_to_recruit, replacement=True):
+                self.remaining_executions -= 1
             return
 
-        if self.get_already_recruited_army_units() > obs.observation.player.army_count:
-            if self.currently_recruiting is None and not self.army_selected and self.can_select_army(obs):
+        army_count = len(building_state.already_recruited_army_units())
+        if army_count > self.obs.player.army_count:
+            if self.currently_recruiting is None and not self.army_selected \
+                    and self.obs.can_select_army():
                 self.select_army()
                 self.army_selected = True
                 return
 
-            missing_units = self.get_missing_army_units(obs)
+            missing_units = self.missing_army_units()
             if missing_units:
                 unit_to_recruit = list(missing_units.items())[0][0]
-                if self.recruit(obs, unit_to_recruit, replacement=True):
-                    self.remaining_actions -= 1
-                    return
+                if self.recruit(unit_to_recruit, replacement=True):
+                    self.remaining_executions -= 1
                 return
 
-        self.remaining_actions -= 1
+        self.remaining_executions -= 1
         return
 
-    def recruit(self, obs, unit_to_recruit, replacement=False):
+    def recruit(self, unit_to_recruit, replacement=False):
         self.currently_recruiting = unit_to_recruit
-        building_to_use = self.get_recruitment_building(unit_to_recruit)
-        all_units_to_check_in_queue = self.get_units_recruited_at(building_to_use)
-        count_of_buildings_to_use = self.count_units_on_screen(obs, building_to_use)
+        building_state = self.player_state.building_state
+        building_to_use = recruitment_building(unit_to_recruit)
+        all_units_to_check_in_queue = units_recruited_at(building_to_use)
+        count_of_buildings_to_use = self.obs.count_units_on_screen(
+            building_to_use)
 
-        if self.get_unit_cost(unit_to_recruit) > obs.observation.player.minerals:
+        if unit_cost(unit_to_recruit) > self.obs.player.minerals:
             self.currently_recruiting = None
             return True
 
         if count_of_buildings_to_use < 1:
             if not replacement:
-                self.state.recruit_order_pos += 1
-                self.state.add_unit(unit_to_recruit, 1)
+                building_state.recruit_order_pos += 1
+                building_state.add_unit(unit_to_recruit, 1)
             self.currently_recruiting = None
             return True
 
-        already_recruiting = self.get_units_in_queue(obs, all_units_to_check_in_queue)
+        already_recruiting = self.units_in_queue(all_units_to_check_in_queue)
 
         if already_recruiting > 3 * count_of_buildings_to_use:
             self.currently_recruiting = None
             return True
 
-        if not self.unit_type_selected(obs, building_to_use):
-            self.select_units(obs, building_to_use)
+        if not self.obs.unit_type_selected(building_to_use):
+            self.select_units(building_to_use)
             self.army_selected = False
             return False
 
-        action = self.get_unit_to_actions(unit_to_recruit)
+        action = unit_to_actions(unit_to_recruit)
 
-        if action.id not in obs.observation.available_actions:
+        if action.id not in self.obs.obs.available_actions:
             # TODO proper logging
-            # print("Unit {0} can't be recruited".format(unit_to_recruit))
+            print("Unit {0} can't be recruited".format(unit_to_recruit))
             self.currently_recruiting = None
             return True
 
         self.queue.append(action('now'))
         if not replacement:
-            self.state.recruit_order_pos += 1
-            self.state.add_unit(unit_to_recruit, 1)
+            building_state.recruit_order_pos += 1
+            building_state.add_unit(unit_to_recruit, 1)
         self.currently_recruiting = None
         return False
 
-    def get_already_recruited_army_units(self):
-        return sum([count for unit, count in self.state.already_recruit.items() if unit is not units.Terran.SCV])
-
-    def get_missing_army_units(self, obs):
-        selected_units = TerranRecruitStage.get_selected_units_count(obs)
+    def missing_army_units(self):
+        building_state = self.player_state.building_state
+        selected_units = self.selected_units_count()
         missing_units = {}
-        army_units = {unit: count for unit, count in self.state.already_recruit.items() if unit is not units.Terran.SCV}
+        army_units = building_state.already_recruited_army_units()
         for unit, count in army_units.items():
             missing_count = count - selected_units.get(unit, 0)
             if missing_count > 0:
                 missing_units[unit] = missing_count
         return missing_units
 
-    @staticmethod
-    def get_selected_units_count(obs):
-        selected = TerranRecruitStage.get_selected_units(obs)
+    def selected_units_count(self):
+        selected = self.get_selected_units()
         selected_units = {}
+        # TODO refactor to dict comprehension
         for unit in selected:
-            selected_units[unit.unit_type] = selected_units.get(unit.unit_type, 0) + 1
+            new_value = selected_units.get(unit.unit_type, 0) + 1
+            selected_units[unit.unit_type] = new_value
         return selected_units
 
-    @staticmethod
-    def get_selected_units(obs):
-        single_selected = any(obs.observation.single_select[0])
-        return obs.observation.single_select if single_selected else obs.observation.multi_select
+    def get_selected_units(self):
+        single_select = self.obs.obs.single_select
+        multi_select = self.obs.obs.multi_select
+        return single_select or multi_select
 
-    @staticmethod
-    def get_units_in_queue(obs, unit_types):
-        return len([unit for unit in obs.observation.build_queue if unit.unit_type in unit_types])
-
-    @staticmethod
-    def get_recruitment_building(unit):
-        return UNIT_TO_BUILDING[unit]
-
-    @staticmethod
-    def get_units_recruited_at(building_type):
-        return [unit for (unit, building) in UNIT_TO_BUILDING.items() if building == building_type]
-
-    @staticmethod
-    def get_unit_cost(unit_type):
-        return UNIT_TO_COST[unit_type]
-
-    @staticmethod
-    def get_unit_to_actions(unit_type):
-        return UNIT_TO_ACTIONS[unit_type]
+    def units_in_queue(self, unit_types):
+        return len([
+            unit for unit
+            in self.obs.obs.build_queue
+            if unit.unit_type in unit_types
+        ])

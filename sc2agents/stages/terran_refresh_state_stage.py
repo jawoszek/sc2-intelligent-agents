@@ -1,21 +1,26 @@
 """A random agent for starcraft."""
 import random
 from pysc2.lib import actions, units
+from sc2agents.data.control_state import MAIN_GROUP
+from sc2agents.data.player_state import PlayerState
+from sc2agents.data.parameters import Parameters
 from sc2agents.stages.stage import Stage
-from sc2agents.data.terran_state import TerranState, CCS_GROUP
-from sc2agents.data.terran_parameters import TerranParameters
 
 FUNCTIONS = actions.FUNCTIONS
 
 
 class TerranRefreshStateStage(Stage):
 
-    def __init__(self, state: TerranState, parameters: TerranParameters, stage_provider):
-        super().__init__(1, state, parameters, stage_provider)
+    def __init__(self,
+                 parameters: Parameters,
+                 player_state: PlayerState):
+
+        super().__init__(1, parameters, player_state)
 
     def process(self, obs):
-        if obs.first():
-            ccs = self.units_on_screen(obs, units.Terran.CommandCenter)
+        super(TerranRefreshStateStage, self).process(obs)
+        if self.obs.timestep.first():
+            ccs = self.obs.units_on_screen(units.Terran.CommandCenter)
 
             if not ccs:
                 raise EnvironmentError
@@ -25,13 +30,14 @@ class TerranRefreshStateStage(Stage):
             self.queue.append(FUNCTIONS.select_point('select_all_type', point))
             return
 
-        if self.unit_type_selected(obs, units.Terran.CommandCenter):
-            self.queue.append(FUNCTIONS.select_control_group('set', CCS_GROUP))
-            ccs_y, ccs_x = obs.observation.feature_minimap.selected.nonzero()
+        if self.obs.unit_type_selected(units.Terran.CommandCenter):
+            self.queue.append(
+                FUNCTIONS.select_control_group('set', MAIN_GROUP))
+            ccs_y, ccs_x = self.obs.obs.feature_minimap.selected.nonzero()
             point = self.parameters.screen_point(ccs_x[0], ccs_y[0])
-            self.state.current_loc = point
-            self.state.current_main_cc_loc = point
-            self.remaining_actions -= 1
+            self.player_state.map_state.current_loc = point
+            self.player_state.map_state.current_main_base_loc = point
+            self.remaining_executions -= 1
             return
 
         raise NotImplementedError('Mid-game refresh state not implemented yet')
