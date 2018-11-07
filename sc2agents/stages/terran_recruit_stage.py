@@ -40,6 +40,7 @@ class TerranRecruitStage(Stage):
 
     def process(self, obs):
         super(TerranRecruitStage, self).process(obs)
+        scv = units.Terran.SCV
         map_state = self.player_state.map_state
         building_state = self.player_state.building_state
 
@@ -54,10 +55,9 @@ class TerranRecruitStage(Stage):
                 self.remaining_executions -= 1
             return
 
-        already_recruited_scv = building_state.already_recruit[units.Terran.SCV]
+        already_recruited_scv = building_state.already_recruit[scv]
         if self.obs.player.food_workers < already_recruited_scv:
-            unit_to_recruit = units.Terran.SCV
-            if self.recruit(unit_to_recruit, replacement=True):
+            if self.recruit(scv, replacement=True):
                 self.remaining_executions -= 1
             return
 

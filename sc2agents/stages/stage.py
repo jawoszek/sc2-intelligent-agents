@@ -9,6 +9,18 @@ from sc2agents.data.observations import Observations
 FUNCTIONS = actions.FUNCTIONS
 
 
+def point_in_range(source, target, dist_range):
+    return source.dist(target) <= dist_range
+
+
+def point_in_range_for_any(target, points, dist_range):
+    return any([
+        point for point
+        in points
+        if point_in_range(target, point, dist_range)
+    ])
+
+
 class Stage:
 
     def __init__(self,
@@ -95,18 +107,6 @@ class Stage:
             if expansion not in visible
         ]
 
-    @staticmethod
-    def point_in_range_for_any(target, points, dist_range):
-        return any([
-            point for point
-            in points
-            if Stage.point_in_range(target, point, dist_range)
-        ])
-
-    @staticmethod
-    def point_in_range(source, target, dist_range):
-        return source.dist(target) <= dist_range
-
     def visible_minimap(self):
         v_y, v_x = self.obs.visible_minimap()
         return self.locations_to_points(v_x, v_y, screen=False)
@@ -132,9 +132,9 @@ class Stage:
             return [
                 enemy for enemy
                 in enemies
-                if self.point_in_range_for_any(enemy,
-                                               visible,
-                                               distance_from_visible)]
+                if point_in_range_for_any(enemy,
+                                          visible,
+                                          distance_from_visible)]
 
         return [
             enemy for enemy
