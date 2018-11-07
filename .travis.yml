@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.6"
+  - 3.6
 install:
   - git config remote.origin.fetch +refs/heads/master:refs/remotes/origin/master
   - git fetch
@@ -10,3 +10,9 @@ script:
   - pytest
   - git diff -z --name-only origin/master... -- *.py | xargs -0 --no-run-if-empty pylint
   - git diff -U origin/master... | flake8 --diff -
+  - sonar-scanner
+addons:
+  sonarcloud:
+    organization: jawoszek-github
+    token:
+      secure: $SONAR_TOKEN
