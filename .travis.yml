@@ -11,6 +11,9 @@ script:
   - git diff -z --name-only origin/master... -- *.py | xargs -0 --no-run-if-empty pylint
   - git diff -U origin/master... | flake8 --diff -
   - sonar-scanner
+branches:
+  only:
+    - master
 addons:
   sonarcloud:
     organization: jawoszek-github
