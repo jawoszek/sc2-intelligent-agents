@@ -69,9 +69,7 @@ class Stage:
             unit = self.parameters.screen_point(unit_to_select.x,
                                                 unit_to_select.y)
             self.queue.append(FUNCTIONS.select_point('select_all_type', unit))
-        elif count < 1:
-            pass
-        else:
+        elif count >= 1:
             units_to_select = random.choices(units_on_screen, k=count)
             x, y = units_to_select[0].x, units_to_select[0].y
             first_unit_loc = self.parameters.screen_point(x, y)
