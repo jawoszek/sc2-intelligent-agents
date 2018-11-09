@@ -2,6 +2,11 @@
 from pysc2.lib import units
 
 
+def merge_count(data, key, count):
+    new_value = data.get(key, 0) + count
+    data[key] = new_value
+
+
 class BuildingState:
 
     def __init__(self, initial_recruited, initial_built):
@@ -14,12 +19,10 @@ class BuildingState:
         self.currently_building = None
 
     def add_building(self, building, count=1):
-        new_value = self.already_built.get(building, 0) + count
-        self.already_built[building] = new_value
+        merge_count(self.already_built, building, count)
 
     def add_unit(self, unit, count=1):
-        new_value = self.already_recruit.get(unit, 0) + count
-        self.already_recruit[unit] = new_value
+        merge_count(self.already_recruit, unit, count)
 
     def already_recruited_army_units(self):
         return [
