@@ -57,3 +57,102 @@ INITIAL_UNITS = {
 INITIAL_BUILDINGS = {
     units.Terran.CommandCenter: 1
 }
+
+RECRUIT_ORDER_DEFAULT = [
+    units.Terran.SCV,
+    units.Terran.SCV,
+    units.Terran.SCV,
+    units.Terran.SCV,
+    units.Terran.SCV,
+    units.Terran.SCV,
+    units.Terran.SCV,
+    units.Terran.SCV,
+    units.Terran.SCV,
+    units.Terran.SCV,
+    units.Terran.Marine,
+    units.Terran.SCV,
+    units.Terran.Marine,
+    units.Terran.SCV,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine,
+    units.Terran.Marine
+]
+
+BUILD_ORDER_DEFAULT = [
+    (12, units.Terran.SupplyDepot),
+    (14, units.Terran.Barracks),
+    (16, units.Terran.SupplyDepot),
+    (17, units.Terran.Refinery),
+    (18, units.Terran.Barracks),
+    (19, units.Terran.SupplyDepot),
+    (22, units.Terran.Barracks),
+    (23, units.Terran.Refinery),
+    (24, units.Terran.SupplyDepot),
+    (28, units.Terran.Barracks),
+    (34, units.Terran.SupplyDepot),
+    (40, units.Terran.SupplyDepot),
+    (48, units.Terran.SupplyDepot),
+    (56, units.Terran.SupplyDepot),
+    (64, units.Terran.SupplyDepot)
+]
+
+UNITS_TO_CHOOSE = [
+    units.Terran.SCV,
+    units.Terran.Marine
+]
+
+BUILDINGS_TO_CHOOSE = [
+    units.Terran.SupplyDepot,
+    units.Terran.Barracks,
+    units.Terran.Refinery
+]

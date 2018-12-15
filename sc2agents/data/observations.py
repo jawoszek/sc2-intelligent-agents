@@ -38,7 +38,6 @@ def relative_on_minimap(obs, relative_id):
 class Observations:
 
     def __init__(self, obs):
-
         self.obs = obs.observation
         self.player = obs.observation.player
         self.timestep = obs

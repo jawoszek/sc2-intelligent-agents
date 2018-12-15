@@ -1,10 +1,12 @@
 """A random agent for starcraft."""
 import random
+
 from pysc2.lib import actions
+
 from sc2agents.data.control_state import MAIN_GROUP
+from sc2agents.data.observations import Observations
 from sc2agents.data.parameters import Parameters
 from sc2agents.data.player_state import PlayerState
-from sc2agents.data.observations import Observations
 
 FUNCTIONS = actions.FUNCTIONS
 

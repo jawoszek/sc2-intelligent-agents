@@ -1,9 +1,10 @@
 """A random agent for starcraft."""
 from pysc2.lib import actions, units
-from sc2agents.data.player_state import PlayerState
-from sc2agents.data.parameters import Parameters
-from sc2agents.stages.stage import Stage
+
 import sc2agents.data.terran.constants as terran_constants
+from sc2agents.data.parameters import Parameters
+from sc2agents.data.player_state import PlayerState
+from sc2agents.stages.stage import Stage
 
 FUNCTIONS = actions.FUNCTIONS
 

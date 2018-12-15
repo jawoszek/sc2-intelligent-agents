@@ -1,5 +1,6 @@
 """A terran agent."""
 from enum import Enum
+
 import sc2agents.data.terran as terran
 
 

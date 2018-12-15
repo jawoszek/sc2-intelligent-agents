@@ -3,16 +3,17 @@ from absl import app
 from pysc2.agents import base_agent
 from pysc2.env import sc2_env
 from pysc2.lib import actions, features
-from sc2agents.stages.stage_provider import StageProvider
-from sc2agents.data.player_state import PlayerState
-from sc2agents.data.parameters import Parameters
-from sc2agents.data.terran.build_order_provider import BuildOrder, \
-    default_build_order
+
+import sc2agents.data.terran as terran
+from sc2agents.data.build_order import BuildOrder
+from sc2agents.data.build_order_providers import default_build_order
 from sc2agents.data.building_state import BuildingState
-from sc2agents.data.map_state import MapState
 from sc2agents.data.control_state import ControlState
-import sc2agents.data.terran.constants as terran_constants
+from sc2agents.data.map_state import MapState
 from sc2agents.data.observations import Observations
+from sc2agents.data.parameters import Parameters
+from sc2agents.data.player_state import PlayerState
+from sc2agents.stages.stage_provider import StageProvider
 
 FUNCTIONS = actions.FUNCTIONS
 
@@ -25,12 +26,12 @@ DIFFICULTY = sc2_env.Difficulty.easy
 class TerranAgent(base_agent.BaseAgent):
     """A Terran Agent."""
 
-    def __init__(self, build_order: BuildOrder = default_build_order()):
+    def __init__(self, build_order: BuildOrder = default_build_order(terran)):
         super().__init__()
         self.state = PlayerState(
             BuildingState(
-                terran_constants.INITIAL_UNITS,
-                terran_constants.INITIAL_BUILDINGS
+                terran.constants.INITIAL_UNITS,
+                terran.constants.INITIAL_BUILDINGS
             ),
             ControlState(),
             MapState(MINIMAP_SIZE)

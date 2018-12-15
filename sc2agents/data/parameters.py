@@ -1,7 +1,8 @@
 """A random agent for starcraft."""
 from pysc2.lib.point import Point
-from sc2agents.data.building_state import BuildingState
+
 from sc2agents.data.build_order import BuildOrder
+from sc2agents.data.building_state import BuildingState
 
 
 # TODO proper logging

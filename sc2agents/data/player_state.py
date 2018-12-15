@@ -10,7 +10,6 @@ class PlayerState:
                  building_state: BuildingState,
                  control_state: ControlState,
                  map_state: MapState):
-
         self.building_state = building_state
         self.control_state = control_state
         self.map_state = map_state

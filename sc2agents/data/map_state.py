@@ -4,7 +4,6 @@
 class MapState:
 
     def __init__(self, minimap_size):
-
         self.current_loc = None
         self.current_main_base_loc = None
 

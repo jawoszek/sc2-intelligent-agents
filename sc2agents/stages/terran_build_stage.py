@@ -1,12 +1,13 @@
 """A random agent for starcraft."""
 import random
+
 from pysc2.lib import actions, units
 from pysc2.lib.point import Point
-from sc2agents.stages.stage import Stage
-from sc2agents.data.player_state import PlayerState
-from sc2agents.data.parameters import Parameters
-import sc2agents.data.terran.constants as terran_constants
 
+import sc2agents.data.terran.constants as terran_constants
+from sc2agents.data.parameters import Parameters
+from sc2agents.data.player_state import PlayerState
+from sc2agents.stages.stage import Stage
 
 FUNCTIONS = actions.FUNCTIONS
 
@@ -212,9 +213,10 @@ class TerranBuildStage(Stage):
     def building_affordable(self, building):
         minerals = self.obs.obs.player.minerals
         vespene = self.obs.obs.player.vespene
+        enough_minerals = building_cost(building) <= minerals
+        enough_vespene = building_cost_vespene(building) <= vespene
 
-        return building_cost(building) <= minerals \
-            and building_cost_vespene(building) <= vespene
+        return enough_minerals and enough_vespene
 
     def building_pass_requirements(self, building):
         requirements = buildings_requirements().get(building, None)
