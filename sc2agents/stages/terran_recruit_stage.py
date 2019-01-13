@@ -62,7 +62,7 @@ class TerranRecruitStage(Stage):
                 self.remaining_executions -= 1
             return
 
-        army_count = len(building_state.already_recruited_army_units())
+        army_count = building_state.already_recruited_army_units()
         if army_count > self.obs.player.army_count:
             if self.currently_recruiting is None and not self.army_selected \
                     and self.obs.can_select_army():
@@ -129,8 +129,7 @@ class TerranRecruitStage(Stage):
         building_state = self.player_state.building_state
         selected_units = self.selected_units_count()
         missing_units = {}
-        army_units = building_state.already_recruited_army_units()
-        for unit, count in army_units.items():
+        for unit, count in building_state.already_recruit.items():
             missing_count = count - selected_units.get(unit, 0)
             if missing_count > 0:
                 missing_units[unit] = missing_count
@@ -148,7 +147,7 @@ class TerranRecruitStage(Stage):
     def get_selected_units(self):
         single_select = self.obs.obs.single_select
         multi_select = self.obs.obs.multi_select
-        return single_select or multi_select
+        return single_select if single_select.any() else multi_select
 
     def units_in_queue(self, unit_types):
         return len([

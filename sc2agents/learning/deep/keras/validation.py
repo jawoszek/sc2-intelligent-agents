@@ -1,7 +1,11 @@
 from random import shuffle
 
-from keras.utils import to_categorical
-from numpy import array
+from absl import app, flags
+
+from sc2agents.entrypoint import setup_flags, setup_model_flags
+from sc2agents.learning.deep.keras.models import NAME_TO_MODEL
+from sc2agents.learning.deep.keras.network import predict, train
+from sc2agents.learning.deep.keras.parsers import read_data_file
 
 
 def is_class_hit(result, real_result):
@@ -9,12 +13,15 @@ def is_class_hit(result, real_result):
     return resulting_class == real_result
 
 
-def results_to_classes(results, output_t):
-    return [
-        (is_class_hit(results[i], output_t[i][0]),
-         output_t[i][0], results[i])
-        for i in range(0, len(results))
-    ]
+def results_parsing(output_t):
+    def compare_results(results, i):
+        return (
+            is_class_hit(results[i], output_t[i][0]),
+            output_t[i][0],
+            results[i]
+        )
+
+    return compare_results
 
 
 def all_with_indexes_in(source, target_range):
@@ -47,12 +54,9 @@ def cross_validate(model, data, epochs, k=5):
         train_output = all_with_indexes_in(output_data, indexes_l)
         test_input = all_with_indexes_in(input_data, indexes_t)
         test_output = all_with_indexes_in(output_data, indexes_t)
-        x_train = array(train_input)
-        y_train = to_categorical(array(train_output).T[0])
-        model.fit(x_train, y_train, epochs=epochs, batch_size=256)
-        x_test = array(test_input)
-        results = model.predict(x_test, batch_size=256)
-        results_single = results_to_classes(results, test_output)
+        train(model, train_input, train_output, epochs)
+        results_single = predict(model, test_input,
+                                 results_parsing(test_output))
         results_all.append(results_single)
     results_sum = sum([
         len([c for c in classes if c[0]]) / len(classes) * 100
@@ -63,10 +67,23 @@ def cross_validate(model, data, epochs, k=5):
 
 def validate(model, data, epochs):
     input_data, output_data = data
-    x_train = array(input_data)
-    y_train = to_categorical(array(output_data).T[0])
-    model.fit(x_train, y_train, epochs=epochs, batch_size=256)
-    results = model.predict(x_train, batch_size=256)
-    classes = results_to_classes(results, output_data)
+    train(model, input_data, output_data, epochs)
+    classes = predict(model, input_data, results_parsing(output_data))
     percent = len([c for c in classes if c[0]]) / len(classes) * 100
     return percent
+
+
+def main(_):
+    data = read_data_file(flags.FLAGS.datafile)
+    model = NAME_TO_MODEL[flags.FLAGS.model]()
+    epochs = flags.FLAGS.epochs
+    args = (model, data, epochs)
+    result = cross_validate(*args) if flags.FLAGS.cross else validate(*args)
+    print(result)
+
+
+if __name__ == "__main__":
+    setup_flags()
+    # setup_flags(('datafile',))
+    setup_model_flags()
+    app.run(main)

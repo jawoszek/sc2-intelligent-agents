@@ -4,6 +4,7 @@ from pysc2.agents import base_agent
 from pysc2.env import sc2_env
 from pysc2.lib import actions, features
 
+from sc2agents.race import Race
 import sc2agents.data.terran as terran
 from sc2agents.data.build_order import BuildOrder
 from sc2agents.data.build_order_providers import default_build_order
@@ -26,7 +27,8 @@ DIFFICULTY = sc2_env.Difficulty.easy
 class TerranAgent(base_agent.BaseAgent):
     """A Terran Agent."""
 
-    def __init__(self, build_order: BuildOrder = default_build_order(terran)):
+    def __init__(self,
+                 build_order: BuildOrder = default_build_order(Race.TERRAN)):
         super().__init__()
         self.state = PlayerState(
             BuildingState(

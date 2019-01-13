@@ -10,7 +10,4 @@ class Race(Enum):
     PROTOSS = None
 
     def constants(self):
-        return self.constants
-
-    def build_order_provider(self):
-        return self.build_order_provider
+        return self.value.constants
