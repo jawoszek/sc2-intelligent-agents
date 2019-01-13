@@ -40,3 +40,9 @@ def simple_sparse_model():
                   optimizer='sgd',
                   metrics=['accuracy'])
     return model
+
+
+NAME_TO_MODEL = {
+    'dense': simple_dense_model,
+    'sparse': simple_sparse_model
+}

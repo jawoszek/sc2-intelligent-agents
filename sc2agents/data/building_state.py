@@ -25,8 +25,8 @@ class BuildingState:
         merge_count(self.already_recruit, unit, count)
 
     def already_recruited_army_units(self):
-        return [
+        return sum([
             count for unit, count
             in self.already_recruit.items()
             if unit is not units.Terran.SCV
-        ]
+        ])
