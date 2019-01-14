@@ -47,11 +47,12 @@ def run_game(agent, game_specification=None):
             time_steps = env.step(step_actions)
 
 
-def setup_model_flags():
+def setup_model_flags(required=False):
     flags.DEFINE_enum('model', None, keras_models.NAME_TO_MODEL.keys(),
                       'Name of the model to use.')
     flags.DEFINE_integer('epochs', 100, 'Epochs count.')
-    flags.mark_flag_as_required('model')
+    if required:
+        flags.mark_flag_as_required('model')
 
 
 def setup_flags(required_flags=()):
