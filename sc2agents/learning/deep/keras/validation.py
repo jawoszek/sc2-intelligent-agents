@@ -8,6 +8,10 @@ from sc2agents.learning.deep.keras.network import predict, train
 from sc2agents.learning.deep.keras.parsers import read_data_file
 
 
+def percentage(classes):
+    return len([c for c in classes if c[0]]) / len(classes) * 100
+
+
 def is_class_hit(result, real_result):
     resulting_class = 1 if result[1] > result[0] else 0
     return resulting_class == real_result
@@ -59,7 +63,7 @@ def cross_validate(model, data, epochs, k=5):
                                  results_parsing(test_output))
         results_all.append(results_single)
     results_sum = sum([
-        len([c for c in classes if c[0]]) / len(classes) * 100
+        percentage(classes)
         for classes in results_all
     ])
     return results_sum / k
@@ -69,8 +73,7 @@ def validate(model, data, epochs):
     input_data, output_data = data
     train(model, input_data, output_data, epochs)
     classes = predict(model, input_data, results_parsing(output_data))
-    percent = len([c for c in classes if c[0]]) / len(classes) * 100
-    return percent
+    return percentage(classes)
 
 
 def main(_):
