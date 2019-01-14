@@ -15,7 +15,7 @@ def prepare_network():
     if flags.FLAGS.balanced:
         input_data, output_data = balance_data(input_data, output_data)
     epochs = flags.FLAGS.epochs
-    model = NAME_TO_MODEL[flags.FLAGS.model]
+    model = NAME_TO_MODEL[flags.FLAGS.model]()
     train(model, input_data, output_data, epochs)
     return model
 
