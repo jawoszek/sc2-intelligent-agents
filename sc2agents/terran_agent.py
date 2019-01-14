@@ -4,7 +4,6 @@ from pysc2.agents import base_agent
 from pysc2.env import sc2_env
 from pysc2.lib import actions, features
 
-from sc2agents.race import Race
 import sc2agents.data.terran as terran
 from sc2agents.data.build_order import BuildOrder
 from sc2agents.data.build_order_providers import default_build_order
@@ -14,6 +13,7 @@ from sc2agents.data.map_state import MapState
 from sc2agents.data.observations import Observations
 from sc2agents.data.parameters import Parameters
 from sc2agents.data.player_state import PlayerState
+from sc2agents.race import Race
 from sc2agents.stages.stage_provider import StageProvider
 
 FUNCTIONS = actions.FUNCTIONS

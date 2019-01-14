@@ -1,15 +1,13 @@
 from absl import app, flags
 
-from sc2agents.entrypoint import run_game
-from sc2agents.entrypoint import setup_flags, setup_model_flags
+from sc2agents.data.build_order_providers import random_build_order
+from sc2agents.entrypoint import run_game, setup_flags, setup_model_flags
 from sc2agents.learning.deep.keras.models import NAME_TO_MODEL
 from sc2agents.learning.deep.keras.network import build_order_prediction, train
-from sc2agents.learning.deep.keras.parsers import read_data_file
-
-from sc2agents.data.build_order_providers import random_build_order
+from sc2agents.learning.deep.keras.parsers import balance_data, \
+    read_data_file, write_build_result
 from sc2agents.race import Race
 from sc2agents.terran_agent import TerranAgent
-from sc2agents.learning.deep.keras.parsers import write_build_result, balance_data
 
 
 def prepare_network():
@@ -27,6 +25,7 @@ def model_validation():
 
     def validate(build):
         return build_order_prediction(model, build)
+
     return validate
 
 
@@ -46,6 +45,7 @@ def run(validation, output_file_path):
 def main(_):
     def always(_):
         return True
+
     validation = model_validation() if flags.FLAGS.datafile else always
     for _ in range(0, flags.FLAGS.gamescount):
         run(validation, flags.FLAGS.outfile)

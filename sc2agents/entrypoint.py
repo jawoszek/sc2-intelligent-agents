@@ -64,6 +64,7 @@ def setup_flags(required_flags=()):
 
     def file_exists_if_arg_given(path):
         return path is None or Path(path).is_file()
+
     flags.register_validator(
         'datafile',
         file_exists_if_arg_given,
