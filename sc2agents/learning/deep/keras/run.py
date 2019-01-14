@@ -36,8 +36,11 @@ def run(validation, output_file_path):
         if validation(build):
             break
     agent = TerranAgent(build)
-    result = run_game(agent)
-    write_build_result(build, result, output_file_path)
+    try:
+        result = run_game(agent)
+        write_build_result(build, result, output_file_path)
+    except ValueError:
+        print('Unavailable action')  # TODO remove after pysc2 release
 
 
 def main(_):
@@ -50,4 +53,5 @@ def main(_):
 
 if __name__ == "__main__":
     setup_flags(('outfile',))
+    setup_model_flags()
     app.run(main)

@@ -83,7 +83,6 @@ def main(_):
 
 
 if __name__ == "__main__":
-    setup_flags()
-    # setup_flags(('datafile',))
-    setup_model_flags()
+    setup_flags(('datafile',))
+    setup_model_flags(True)
     app.run(main)
