@@ -35,7 +35,7 @@ class TerranRecruitStage(Stage):
                  parameters: Parameters,
                  player_state: PlayerState):
 
-        super().__init__(1, parameters, player_state)
+        super().__init__(2, parameters, player_state)
         self.currently_recruiting = None
         self.army_selected = False
 
@@ -95,7 +95,6 @@ class TerranRecruitStage(Stage):
         if count_of_buildings_to_use < 1:
             if not replacement:
                 building_state.recruit_order_pos += 1
-                building_state.add_unit(unit_to_recruit, 1)
             self.currently_recruiting = None
             return True
 
@@ -130,6 +129,8 @@ class TerranRecruitStage(Stage):
         selected_units = self.selected_units_count()
         missing_units = {}
         for unit, count in building_state.already_recruit.items():
+            if unit is units.Terran.SCV:
+                continue
             missing_count = count - selected_units.get(unit, 0)
             if missing_count > 0:
                 missing_units[unit] = missing_count
