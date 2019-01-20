@@ -42,7 +42,7 @@ class TerranBuildStage(Stage):
     def __init__(self,
                  parameters: Parameters,
                  player_state: PlayerState):
-        super().__init__(3, parameters, player_state)
+        super().__init__(2, parameters, player_state)
         self.steps_since_ordered_building = None
         self.count_of_building_during_order = None
         self.idle_workers_on_order = None

@@ -1,4 +1,6 @@
 """A random agent for starcraft."""
+from copy import deepcopy
+
 from pysc2.lib import units
 
 
@@ -10,8 +12,8 @@ def merge_count(data, key, count):
 class BuildingState:
 
     def __init__(self, initial_recruited, initial_built):
-        self.already_recruit = initial_recruited
-        self.already_built = initial_built
+        self.already_recruit = deepcopy(initial_recruited)
+        self.already_built = deepcopy(initial_built)
 
         self.recruit_order_pos = 0
         self.build_order_pos = 0
